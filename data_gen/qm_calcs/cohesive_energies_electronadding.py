@@ -7,6 +7,11 @@ import json
 
 
 
+def getTotalCharge(atoms):
+    # total_charge, else charge, else neutral
+    return int(atoms.info.get("total_charge", atoms.info.get("charge", 0)))
+
+
 def substractSelfEnergy(atoms):
     total_self_energy = 0
     for symbol in symbols_selfenergy_pair.keys():
@@ -41,15 +46,14 @@ atoms_list = read(extxyz_path, index=":")
 
 # check every frame first so no partial output is written
 for idx, atoms in enumerate(atoms_list):
-    # frames without total_charge are treated as neutral
-    total_charge = int(atoms.info.get("total_charge", 0))
+    total_charge = getTotalCharge(atoms)
     if abs(total_charge) > 1:
         label = atoms.info.get("label", idx)
         raise ValueError(f"Frame {label}: total_charge={total_charge}, "
                          "only -1, 0 and +1 are supported")
 
 for atoms in atoms_list:
-    total_charge = int(atoms.info.get("total_charge", 0))
+    total_charge = getTotalCharge(atoms)
     total_energy = atoms.get_potential_energy()
     self_energy = substractSelfEnergy(atoms)
     
