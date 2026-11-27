@@ -39,7 +39,14 @@ for atoms in atoms_list:
     total_energy = atoms.get_potential_energy()
     self_energy = substractSelfEnergy(atoms)
     cohesive_energy = total_energy-self_energy
-    atoms.calc = SinglePointCalculator(atoms, energy=cohesive_energy, forces=atoms.get_forces())
+    # keep the stored results that do not depend on the total energy (forces,
+    # dipole, stress, charges, ...); energy-based ones (free_energy, per-atom
+    # energies) are dropped as before
+    results = dict(atoms.calc.results)
+    results.pop("energies", None)
+    results.pop("free_energy", None)
+    results["energy"] = cohesive_energy
+    atoms.calc = SinglePointCalculator(atoms, **results)
     atoms.get_potential_energy()
     write(f"cohesive_{extxyz_path.split('/')[-1]}", atoms, append=True)
 
